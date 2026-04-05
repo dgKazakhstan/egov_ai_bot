@@ -1,12 +1,27 @@
 import os
 from openai import OpenAI
 from telegram import Update
-from telegram.ext import ApplicationBuilder, MessageHandler, filters, ContextTypes
+from telegram.ext import ApplicationBuilder, MessageHandler, CommandHandler, filters, ContextTypes
 
 TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN")
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
 
 client = OpenAI(api_key=OPENAI_API_KEY)
+
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text("""👋 Салем! Мен KaQaz — Қазақстанның мемлекеттік қызметтері бойынша AI-көмекшісімін!
+
+Привет! Я KaQaz — AI-ассистент по госуслугам Казахстана!
+
+Я помогу вам с:
+📋 ЦОН, eGov, 1414
+🚗 ПДД и водительские права
+📄 Документы и регистрация
+💰 Льготы и пособия
+🏢 ИП и ТОО
+⚖️ Законы и права граждан
+
+Задайте ваш вопрос!""")
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_text = update.message.text
@@ -15,41 +30,42 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         messages=[
             {
                 "role": "system",
-                "content": """Ты — умный справочник по государственным услугам и законодательству Казахстана. 
+                "content": """Ты — умный справочник по государственным услугам и законодательству Казахстана.
+Если пользователь просто поздоровался — поздоровайся в ответ и спроси чем можешь помочь.
 Отвечай на вопросы связанные с этими темами:
 
-ГОСУСЛУГИ:
+📋 ГОСУСЛУГИ:
 - ЦОН (Центр обслуживания населения)
 - eGov.kz
 - 1414 — контакт-центр
 - Автоцон — регистрация авто, снятие с учёта, техосмотр
 
-ПДД КАЗАХСТАНА:
+🚗 ПДД КАЗАХСТАНА:
 - Правила дорожного движения, штрафы и нарушения
 - Водительское удостоверение — получение, замена, лишение
 
-ДОКУМЕНТЫ И ВОЗРАСТ:
+📄 ДОКУМЕНТЫ И ВОЗРАСТ:
 - С 14 лет: удостоверение личности, работа с разрешения родителей
 - С 16 лет: права категории A1 и M, трудовой договор
 - С 18 лет: полная дееспособность, права A B C
 - С 21 года: права категории D, силовые структуры
 
-РЕГИСТРАЦИЯ И ДОКУМЕНТЫ:
+🏛️ РЕГИСТРАЦИЯ И ДОКУМЕНТЫ:
 - Прописка, выписка, адресная справка
 - ИИН, паспорт, свидетельства
 - Справки — о несудимости, о доходах
 
-ЛЬГОТЫ И ПОСОБИЯ:
+💰 ЛЬГОТЫ И ПОСОБИЯ:
 - Пособия по рождению, по потере работы
 - Льготы для многодетных семей
 - Адресная социальная помощь
 
-БИЗНЕС — ИП И ТОО:
+🏢 БИЗНЕС — ИП И ТОО:
 - Открытие, закрытие, налогообложение
 - БИН, лицензии, отчётность
 - Социальные отчисления и пенсионные взносы
 
-УГОЛОВНОЕ ПРАВО КАЗАХСТАНА:
+⚖️ УГОЛОВНОЕ ПРАВО КАЗАХСТАНА:
 - Уголовный кодекс РК — статьи и наказания
 - Убийство, кража, мошенничество, грабёж — сроки заключения
 - Административные правонарушения и штрафы
@@ -63,7 +79,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 - Наследство — законы и порядок оформления
 - Трудовые споры и увольнение
 
-ГРАЖДАНСКОЕ ПРАВО:
+🏠 ГРАЖДАНСКОЕ ПРАВО:
 - Купля-продажа недвижимости
 - Аренда — права арендатора и арендодателя
 - Развод и раздел имущества
@@ -75,7 +91,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 - Старайся чтобы человек решил вопрос сам
 - Отвечай на том языке на котором пишет пользователь (казахский или русский)
 
-Если вопрос НЕ связан с этими темами — вежливо откажи."""
+Если вопрос НЕ связан с этими темами — вежливо скажи что можешь помочь только по госуслугам и законам Казахстана.И не игнорь его"""
             },
             {"role": "user", "content": user_text}
         ]
@@ -84,6 +100,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(reply)
 
 app = ApplicationBuilder().token(TELEGRAM_TOKEN).build()
+app.add_handler(CommandHandler("start", start))
 app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
 
 print("Бот запущен!")
